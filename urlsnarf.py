@@ -22,7 +22,7 @@ def snifferHTTP(packet):
 	if packet.haslayer(scapy_http.http.HTTPRequest):
 		source_ip = str(packet["IP"].src)
 		ts = int(packet["TCP"].time)
-		timeurlsnarf = str(datetime.utcfromtimestamp(ts).strftime('[%d/%m/%Y:%H:%M:%S %z]'))
+		timeurlsnarf = str(datetime.fromtimestamp(ts).strftime('[%d/%m/%Y:%H:%M:%S %z]'))
 		metodo = str(packet["HTTPRequest"].Method)
 		host = str(packet["HTTPRequest"].Host)
 		path = str(packet["HTTPRequest"].Path)
@@ -62,6 +62,9 @@ def main():
 			except PermissionError:
 				print(sys.argv[0]+": "+arg+": You don't have permission to capture on that device (socket: Operation not permitted)")
 				sys.exit(2)
+			except scapy.Scapy_Exception as e:
+				print("[-] Error:",e)
+				sys.exit(2)
         
 	for opt, arg in opts:
 		if opt in ("-p", "--pcap"):
@@ -71,6 +74,7 @@ def main():
 					snifferHTTP(packet)
 			except scapy.Scapy_Exception as e:
 				print("[-] Error:",e)
+				sys.exit(2)
 
 	for opt, arg in opts:
 		if opt in ("-h", "--help"):
