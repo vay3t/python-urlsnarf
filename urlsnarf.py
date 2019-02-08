@@ -22,7 +22,12 @@ def snifferHTTP(packet):
 	if packet.haslayer(scapy_http.http.HTTPRequest):
 		source_ip = str(packet["IP"].src)
 		ts = int(packet["TCP"].time)
-		timeurlsnarf = str(datetime.fromtimestamp(ts).strftime('[%d/%m/%Y:%H:%M:%S %z]'))
+		fromtime = datetime.fromtimestamp(ts).hour
+		utctime = datetime.utcfromtimestamp(ts).hour
+		utc_offset = fromtime-utctime
+		if utc_offset >= 0:
+			utc_offset = "+"+utc_offset
+		timeurlsnarf = str(datetime.utcfromtimestamp(ts).strftime('[%d/%m/%Y-%H:%M:%S UTC{}]'.format(utc_offset)))
 		metodo = str(packet["HTTPRequest"].Method)
 		host = str(packet["HTTPRequest"].Host)
 		path = str(packet["HTTPRequest"].Path)
@@ -49,7 +54,7 @@ def main():
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "i:p:h", ["interface","pcap","help"])
 		if not opts:
-				usage()
+			usage()
 	except getopt.GetoptError as err:
 		print(err)
 		usage()
@@ -65,7 +70,7 @@ def main():
 			except scapy.Scapy_Exception as e:
 				print("[-] Error:",e)
 				sys.exit(2)
-        
+		
 	for opt, arg in opts:
 		if opt in ("-p", "--pcap"):
 			try:
@@ -82,4 +87,7 @@ def main():
 			sys.exit()
 
 if __name__ == "__main__":
-    main()
+	try:
+		main()
+	except Exception:
+		print("Error: ")
