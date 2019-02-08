@@ -64,10 +64,7 @@ def main():
 			try:
 				print(sys.argv[0]+": listening on "+arg+" [tcp port 80 or port 8080 or port 3128]")
 				scapy.sniff(iface=arg,filter="tcp port 80 or port 8080 or port 3128",prn=snifferHTTP)
-			except PermissionError:
-				print(sys.argv[0]+": "+arg+": You don't have permission to capture on that device (socket: Operation not permitted)")
-				sys.exit(2)
-			except scapy.Scapy_Exception as e:
+			except Exception as e:
 				print("[-] Error:",e)
 				sys.exit(2)
 		
@@ -89,5 +86,5 @@ def main():
 if __name__ == "__main__":
 	try:
 		main()
-	except Exception:
-		print("Error: ")
+	except Exception as e:
+		print("[-] Error: ",e)
