@@ -1,5 +1,5 @@
 # python-urlsnarf
-urlsnarf+ with anabolics
+urlsnarf+ with anabolics, sniffer HTTP of GET and POST method
 
 ### History
 urlsnarf does not show the data of a post request, so I was forced to program a tool that if I did
