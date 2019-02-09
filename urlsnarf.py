@@ -1,33 +1,50 @@
 #!/usr/bin/env python
-try:
-    import scapy.all as scapy
-except ImportError:
-    import scapy
 
 try:
-    # This import works from the project directory
-    import scapy_http.http
+	import scapy.all as scapy
 except ImportError:
-    # If you installed this package via pip, you just need to execute this
-    from scapy.layers import http
+	import scapy
+
+try:
+	# This import works from the project directory
+	import scapy_http.http
+except ImportError:
+	# If you installed this package via pip, you just need to execute this
+	from scapy.layers import http
 
 from datetime import datetime
-
 import getopt
 import sys
 
 version = "1.0"
 
+def ts2str(ts):
+	hour_fromtime = datetime.fromtimestamp(ts).hour
+	min_fromtime = datetime.fromtimestamp(ts).minute
+
+	hour_utctime = datetime.utcfromtimestamp(ts).hour
+	min_utctime = datetime.utcfromtimestamp(ts).minute
+
+	hour_offset = (hour_fromtime - hour_utctime) * 100
+	min_offset = ((min_fromtime - min_utctime) * 100) // 60
+
+	gmt = hour_offset + min_offset
+	gmt_abs = str(abs(gmt))
+
+	if gmt >= 0:
+		gmt_final = "+"+gmt_abs.zfill(4)
+	else:
+		gmt_final = "-"+gmt_abs.zfill(4)
+
+	timeurlsnarf = str(datetime.utcfromtimestamp(ts).strftime('[%d/%m/%Y:%H:%M:%S {}]'.format(gmt_final)))
+
+	return timeurlsnarf
+
 def snifferHTTP(packet):
 	if packet.haslayer(scapy_http.http.HTTPRequest):
 		source_ip = str(packet["IP"].src)
 		ts = int(packet["TCP"].time)
-		fromtime = datetime.fromtimestamp(ts).hour
-		utctime = datetime.utcfromtimestamp(ts).hour
-		utc_offset = fromtime-utctime
-		if utc_offset >= 0:
-			utc_offset = "+"+utc_offset
-		timeurlsnarf = str(datetime.utcfromtimestamp(ts).strftime('[%d/%m/%Y-%H:%M:%S UTC{}]'.format(utc_offset)))
+		timeurlsnarf = ts2str(ts)
 		metodo = str(packet["HTTPRequest"].Method)
 		host = str(packet["HTTPRequest"].Host)
 		path = str(packet["HTTPRequest"].Path)
@@ -41,7 +58,7 @@ def snifferHTTP(packet):
 			data = str("?"+packet["Raw"].load)
 			string_completo = source_ip + " - - " + timeurlsnarf + ' "' + metodo + " " + "http://" + host + port + path + data + " " + httpv + '" - - "-" "' + useragent + '"'
 			print(string_completo)
-		else:
+		if metodo == "GET":
 			string_completo = source_ip + " - - " + timeurlsnarf + ' "' + metodo + " " + "http://" + host + port + path + " " + httpv + '" - - "-" "' + useragent + '"'
 			print(string_completo)
 
@@ -61,12 +78,8 @@ def main():
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt in ("-i", "--interface"):
-			try:
-				print(sys.argv[0]+": listening on "+arg+" [tcp port 80 or port 8080 or port 3128]")
-				scapy.sniff(iface=arg,filter="tcp port 80 or port 8080 or port 3128",prn=snifferHTTP)
-			except Exception as e:
-				print("[-] Error:",e)
-				sys.exit(2)
+			print(sys.argv[0]+": listening on "+arg+" [tcp port 80 or port 8080 or port 3128]")
+			scapy.sniff(iface=arg,filter="tcp port 80 or port 8080 or port 3128",prn=snifferHTTP)
 		
 	for opt, arg in opts:
 		if opt in ("-p", "--pcap"):
@@ -75,7 +88,7 @@ def main():
 				for packet in packets:
 					snifferHTTP(packet)
 			except scapy.Scapy_Exception as e:
-				print("[-] Error:",e)
+				print(e)
 				sys.exit(2)
 
 	for opt, arg in opts:
@@ -87,4 +100,4 @@ if __name__ == "__main__":
 	try:
 		main()
 	except Exception as e:
-		print("[-] Error: ",e)
+		print(e)
