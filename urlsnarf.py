@@ -16,7 +16,7 @@ from datetime import datetime
 import getopt
 import sys
 
-version = "1.0"
+version = "1.1"
 
 def ts2str(ts):
 	hour_fromtime = datetime.fromtimestamp(ts).hour
@@ -45,17 +45,17 @@ def snifferHTTP(packet):
 		source_ip = str(packet["IP"].src)
 		ts = int(packet["TCP"].time)
 		timeurlsnarf = ts2str(ts)
-		metodo = str(packet["HTTPRequest"].Method)
-		host = str(packet["HTTPRequest"].Host)
-		path = str(packet["HTTPRequest"].Path)
-		httpv = str(packet["HTTPRequest"].fields["Http-Version"])
-		useragent = str(packet["HTTPRequest"].fields["User-Agent"])
+		metodo = str(packet["HTTPRequest"].Method.decode("utf-8"))
+		host = str(packet["HTTPRequest"].Host.decode("utf-8"))
+		path = str(packet["HTTPRequest"].Path.decode("utf-8"))
+		httpv = str(packet["HTTPRequest"].fields["Http-Version"].decode("utf-8"))
+		useragent = str(packet["HTTPRequest"].fields["User-Agent"].decode("utf-8"))
 		if packet["TCP"].dport == 80:
 			port = ""
 		else:
-			port = ":"+str(packet["TCP"].dport)
+			port = ":"+str(packet["TCP"].dport.decode("utf-8"))
 		if metodo == "POST":
-			data = str("?"+packet["Raw"].load)
+			data = "?"+str(packet["Raw"].load.decode("utf-8"))
 			string_completo = source_ip + " - - " + timeurlsnarf + ' "' + metodo + " " + "http://" + host + port + path + data + " " + httpv + '" - - "-" "' + useragent + '"'
 			print(string_completo)
 		if metodo == "GET":
