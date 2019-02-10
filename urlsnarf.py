@@ -65,7 +65,7 @@ def snifferHTTP(packet):
 
 def usage():
 	print("Version: "+version)
-	print("Usage: ./" + sys.argv[0] + " [-i interface | -p pcapfile]")
+	print("Usage: python " + sys.argv[0] + " [-i interface | -p pcapfile]")
 
 def main():
 	try:
