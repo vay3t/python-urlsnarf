@@ -19,7 +19,7 @@ If you need sniff Squid Proxy i recommend this module: https://github.com/vay3t/
 # Help
 ```
 Version: 1.1
-Usage: ./urlsnarf.py [-i interface | -p pcapfile]
+Usage: python urlsnarf.py [-i interface | -p pcapfile]
 ```
 
 # Known problems
