@@ -15,6 +15,7 @@ except ImportError:
 from datetime import datetime
 import getopt
 import sys
+import codecs
 
 version = "1.1"
 
@@ -53,9 +54,11 @@ def snifferHTTP(packet):
 		if packet["TCP"].dport == 80:
 			port = ""
 		else:
-			port = ":"+str(packet["TCP"].dport.decode("utf-8"))
+			port = ":"+str(codecs.decode(packet["TCP"].dport,encoding='utf-8',errors='ignore'))
 		if metodo == "POST":
-			data = "?"+str(packet["Raw"].load.decode("utf-8"))
+			data = ""
+			if packet.haslayer(Raw):
+				data = "?"+str(codecs.decode(packet["Raw"].load,encoding='utf-8',errors='ignore'))
 			string_completo = source_ip + " - - " + timeurlsnarf + ' "' + metodo + " " + "http://" + host + port + path + data + " " + httpv + '" - - "-" "' + useragent + '"'
 			print(string_completo)
 		if metodo == "GET":
